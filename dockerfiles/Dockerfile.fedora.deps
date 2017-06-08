@@ -1,0 +1,26 @@
+# NOTE: this container is optimized for development and caching, not space
+# How to use this Dockerfile:
+# # start from the parent directory of this Dockerfile.
+# docker build -t mosh:fedora -f dockerfiles/Dockerfile.fedora .
+# docker run -d -p 2222:22 -p 60000-60010:60000-60010/udp --name mosh-fedora mosh:fedora
+# docker logs mosh-fedora # grab mosh user's password
+# mosh --ssh='ssh -p 2222' mosh@localhost
+
+FROM mosh:fedora
+
+ADD deps deps
+WORKDIR deps
+
+RUN curl -OL https://github.com/tmux/tmux/releases/download/2.6/tmux-2.6.tar.gz
+RUN curl -OL https://github.com/libevent/libevent/releases/download/release-2.1.8-stable/libevent-2.1.8-stable.tar.gz
+RUN curl -OL http://ftp.gnu.org/gnu/ncurses/ncurses-6.0.tar.gz
+RUN curl -OL https://github.com/google/protobuf/releases/download/v3.4.1/protobuf-cpp-3.4.1.tar.gz
+RUN curl -OL https://www.openssl.org/source/openssl-1.0.2l.tar.gz
+RUN curl -OL https://github.com/telmich/gpm/archive/1.20.7.tar.gz
+
+# todo combine above
+RUN yum install -y findutils
+
+RUN ls *.tar.gz | xargs -n1 tar -zxf
+
+RUN ./build-deps.sh

@@ -1,0 +1,40 @@
+# NOTE: this container is optimized for development and caching, not space
+FROM debian:stretch
+
+# NOTE: openssh-server is only required for testing connections to the docker container using the built mosh-server.
+# TODO: add libutempter-dev when in main repo
+RUN apt-get update && \
+    apt-get install -y \
+            autotools-dev \
+            bash-completion \
+            debhelper \
+            dh-autoreconf \
+            less \
+            libncurses5-dev \
+            libprotobuf-dev \
+            libssl-dev \
+            libutempter-dev \
+            locales \
+            tmux \
+            openssh-client \
+            openssh-server \
+            pkg-config \
+            protobuf-compiler \
+            zlib1g-dev
+
+ADD . /mosh
+WORKDIR /mosh
+
+RUN ./autogen.sh && \
+    ./configure --prefix=/usr && \
+    make && \
+    make install && \
+    useradd -m mosh
+
+EXPOSE 22
+
+CMD MOSH_USER_PASSWORD=$(dd if=/dev/urandom count=4096 2>/dev/null | sha1sum | awk '{print $1}') && \
+    echo "mosh user password is ${MOSH_USER_PASSWORD}" && \
+    echo mosh:${MOSH_USER_PASSWORD} | chpasswd >/dev/null 2>&1 && \
+    unset MOSH_USER_PASSWORD && \
+    service ssh start -D
