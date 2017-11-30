@@ -19,44 +19,44 @@ export LDFLAGS="-L${INSTALL_DIR}/lib -Wl,-rpath,${INSTALL_DIR}/lib"
 export PKG_CONFIG_PATH="${INSTALL_DIR}/lib/pkgconfig"
 export LD_LIBRARY_PATH="${INSTALL_DIR}/lib"
 
-MAKEOPTS=-j4
+MAKEOPTS="-j4"
 
 cd $LIBEVENT_SRC_DIR
 make clean || echo
 ./configure --enable-static=yes --enable-shared=yes --prefix=${INSTALL_DIR}
-make $MAKEOPTS
+make ${MAKEOPTS}
 make install
 
 cd $OPENSSL_SRC_DIR
 make clean || echo
 ./config no-shared -fPIC --prefix=${INSTALL_DIR}
-make $MAKEOPTS
+make ${MAKEOPTS}
 make install
 
 echo "Building protobuf..."
 cd $PROTOBUF_SRC_DIR
 make clean || echo
 ./configure --disable-shared --prefix=${INSTALL_DIR}
-make $MAKEOPTS
+make ${MAKEOPTS}
 make install
 
 echo "Building ncursesw..."
 cd $NCURSES_SRC_DIR
 make clean || echo
 ./configure --enable-pc-files --enable-widec --without-gpm --with-pkg-config-libdir=${PKG_CONFIG_PATH} --prefix=${INSTALL_DIR}
-make $MAKEOPTS
+make ${MAKEOPTS}
 make install
 
 echo "Building ncurses..."
 cd $NCURSES_SRC_DIR
 make clean || echo
 ./configure --enable-pc-files --without-gpm --with-pkg-config-libdir=${PKG_CONFIG_PATH} --prefix=${INSTALL_DIR}
-make $MAKEOPTS
+make ${MAKEOPTS}
 make install
 
 echo "Building tmux..."
 cd $TMUX_SRC_DIR
 make clean || echo
 ./configure --prefix=${INSTALL_DIR}
-make $MAKEOPTS
+make ${MAKEOPTS}
 make install
