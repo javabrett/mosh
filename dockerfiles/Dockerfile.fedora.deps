@@ -8,7 +8,6 @@
 
 FROM mosh:fedora
 
-RUN mkdir deps
 WORKDIR deps
 
 RUN curl -OL https://github.com/tmux/tmux/releases/download/2.6/tmux-2.6.tar.gz
@@ -18,10 +17,7 @@ RUN curl -OL https://github.com/google/protobuf/releases/download/v3.4.1/protobu
 RUN curl -OL https://www.openssl.org/source/openssl-1.0.2l.tar.gz
 RUN curl -OL https://github.com/telmich/gpm/archive/1.20.7.tar.gz
 
-# todo combine above
-RUN yum install -y findutils
-
 RUN ls *.tar.gz | xargs -n1 tar -zxf
 
-ADD deps/build-deps.sh .
+#ADD deps/build-deps.sh .
 RUN ./build-deps.sh
