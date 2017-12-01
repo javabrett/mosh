@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 PWD=$(pwd)
 TMUX_SRC_DIR=${PWD}/tmux-2.6
