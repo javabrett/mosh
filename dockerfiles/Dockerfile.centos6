@@ -1,0 +1,60 @@
+# NOTE: this container is optimized for development and caching, not space
+# How to use this Dockerfile:
+# # start from the parent directory of this Dockerfile.
+# docker build -t mosh:fedora -f dockerfiles/Dockerfile.fedora .
+# docker run -d -p 2222:22 -p 60000-60010:60000-60010/udp --name mosh-fedora mosh:fedora
+# docker logs mosh-fedora # grab mosh user's password
+# mosh --ssh='ssh -p 2222' mosh@localhost
+
+FROM centos:6
+
+# NOTE: openssh-server is only required for testing connections to the docker container using the built mosh-server.
+# TODO: add libutempter-dev when in main repo
+RUN yum install -y \
+        autoconf \
+        automake \
+        gcc-c++ \
+        libutempter-devel \
+        ncurses-devel \
+        openssh-clients \
+        openssh-server \
+        openssl \
+        openssl-devel \
+        perl-IO-Socket-IP \
+        protobuf-compiler \
+        protobuf-devel \
+        zlib-devel
+
+# FIXME roll-up
+RUN rpm -ivh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+RUN yum install -y protobuf-c
+RUN yum install -y cpan
+
+RUN perl -MCPAN -e 'my $c = "CPAN::HandleConfig"; $c->load(doit => 1, autoconfig => 1); $c->edit(prerequisites_policy => "follow"); $c->edit(build_requires_install_policy => "yes"); $c->commit'
+RUN cpan CPAN
+RUN cpan Module::Build::Compat Socket::GetAddrInfo
+RUN cpan Socket::GetAddrInfo
+
+ADD . /mosh
+WORKDIR /mosh
+
+# protobuf on Centos 6 is missing pkgconfig protobuf.pc, skip the check
+RUN sed -i '/^PKG_CHECK_MODULES.*protobuf/d' configure.ac
+
+RUN ./autogen.sh && \
+    ./configure --prefix=/usr && \
+    make && \
+    make install && \
+    ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa && \
+    ssh-keygen -f /etc/ssh/ssh_host_dsa_key -N '' -t dsa && \
+    ssh-keygen -f /etc/ssh/ssh_host_ecdsa_key -N '' -t ecdsa && \
+    ssh-keygen -f /etc/ssh/ssh_host_ed25519_key -N '' -t ed25519 && \
+    useradd -m mosh
+
+EXPOSE 22 60000-60010
+
+CMD MOSH_USER_PASSWORD=$(dd if=/dev/urandom count=4096 2>/dev/null | sha1sum | awk '{print $1}') && \
+    echo "mosh user password is ${MOSH_USER_PASSWORD}" && \
+    echo mosh:${MOSH_USER_PASSWORD} | chpasswd >/dev/null 2>&1 && \
+    unset MOSH_USER_PASSWORD && \
+    /usr/sbin/sshd -D
