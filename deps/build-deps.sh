@@ -40,17 +40,20 @@ make clean || echo
 make ${MAKEOPTS}
 make install
 
+NCURSES_CONFIGURE_OPTS="--enable-pc-files --without-gpm --with-pkg-config --with-shared --with-termlib --prefix=${INSTALL_DIR}"
+NCURSESW_CONFIGURE_OPTS="${NCURSES_CONFIGURE_OPTS} --enable-widec"
+
 echo "Building ncursesw..."
 cd $NCURSES_SRC_DIR
 make clean || echo
-./configure --enable-pc-files --enable-widec --without-gpm --with-pkg-config-libdir=${PKG_CONFIG_PATH} --prefix=${INSTALL_DIR}
+./configure ${NCURSESW_CONFIGURE_OPTS}
 make ${MAKEOPTS}
 make install
 
 echo "Building ncurses..."
 cd $NCURSES_SRC_DIR
 make clean || echo
-./configure --enable-pc-files --without-gpm --with-pkg-config-libdir=${PKG_CONFIG_PATH} --prefix=${INSTALL_DIR}
+./configure ${NCURSES_CONFIGURE_OPTS}
 make ${MAKEOPTS}
 make install
 
