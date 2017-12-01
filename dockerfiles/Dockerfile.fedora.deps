@@ -8,7 +8,7 @@
 
 FROM mosh:fedora
 
-ADD deps deps
+RUN mkdir deps
 WORKDIR deps
 
 RUN curl -OL https://github.com/tmux/tmux/releases/download/2.6/tmux-2.6.tar.gz
@@ -23,4 +23,5 @@ RUN yum install -y findutils
 
 RUN ls *.tar.gz | xargs -n1 tar -zxf
 
+ADD deps/build-deps.sh .
 RUN ./build-deps.sh
