@@ -8,9 +8,13 @@
 
 FROM centos:6
 
+ARG PREFIX="/usr"
+ARG CONFIGURE_OPTS="--enable-client=no --prefix=/usr"
+
 # NOTE: openssh-server is only required for testing connections to the docker container using the built mosh-server.
-# TODO: add libutempter-dev when in main repo
-RUN yum install -y \
+# EPEL for protobuf-c
+RUN rpm -ivh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm && \
+    yum install -y \
         autoconf \
         automake \
         gcc-c++ \
@@ -20,20 +24,10 @@ RUN yum install -y \
         openssh-server \
         openssl \
         openssl-devel \
-        perl-IO-Socket-IP \
+        protobuf-c \
         protobuf-compiler \
         protobuf-devel \
         zlib-devel
-
-# FIXME roll-up
-RUN rpm -ivh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
-RUN yum install -y protobuf-c
-RUN yum install -y cpan
-
-RUN perl -MCPAN -e 'my $c = "CPAN::HandleConfig"; $c->load(doit => 1, autoconfig => 1); $c->edit(prerequisites_policy => "follow"); $c->edit(build_requires_install_policy => "yes"); $c->commit'
-RUN cpan CPAN
-RUN cpan Module::Build::Compat Socket::GetAddrInfo
-RUN cpan Socket::GetAddrInfo
 
 ADD . /mosh
 WORKDIR /mosh
@@ -42,7 +36,7 @@ WORKDIR /mosh
 RUN sed -i '/^PKG_CHECK_MODULES.*protobuf/d' configure.ac
 
 RUN ./autogen.sh && \
-    ./configure --prefix=/usr && \
+    ./configure ${CONFIGURE_OPTS} && \
     make && \
     make install && \
     ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa && \
